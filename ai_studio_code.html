@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PilotBid Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & BASE --- */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; color: #0f172a; }
+        button, input, select { font: inherit; }
+        
+        /* --- COLORS --- */
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b; --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+            --av-50: #f0f9ff; --av-100: #e0f2fe; --av-200: #bae6fd; --av-300: #7dd3fc; --av-400: #38bdf8; --av-500: #0ea5e9; --av-600: #0284c7; --av-700: #0369a1; --av-800: #075985;
+            --emerald-50: #ecfdf5; --emerald-100: #d1fae5; --emerald-200: #a7f3d0; --emerald-600: #059669; --emerald-700: #047857;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-600: #dc2626; --red-700: #b91c1c;
+            --amber-100: #fef3c7; --amber-500: #f59e0b; --amber-700: #b45309;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-600: #2563eb; --blue-800: #1e40af;
+        }
+
+        /* --- UTILITIES --- */
+        .bg-white { background-color: white; }
+        .bg-slate-50 { background-color: var(--slate-50); }
+        .bg-slate-100 { background-color: var(--slate-100); }
+        .bg-aviation-50 { background-color: var(--av-50); }
+        .bg-aviation-100 { background-color: var(--av-100); }
+        .bg-aviation-500 { background-color: var(--av-500); }
+        .bg-aviation-600 { background-color: var(--av-600); }
+        
+        .bg-emerald-50 { background-color: var(--emerald-50); }
+        .bg-blue-50 { background-color: var(--blue-50); }
+        .bg-red-50 { background-color: var(--red-50); }
+        .bg-amber-100 { background-color: var(--amber-100); }
+
+        .hover\:bg-aviation-700:hover { background-color: var(--av-700); }
+        .hover\:bg-slate-50:hover { background-color: var(--slate-50); }
+        .hover\:bg-slate-200:hover { background-color: var(--slate-200); }
+        .hover\:bg-red-50:hover { background-color: var(--red-50); }
+        .hover\:scale-110:hover { transform: scale(1.1); }
+        .group:hover .group-hover\:scale-110 { transform: scale(1.1); }
+
+        .text-white { color: white; }
+        .text-slate-300 { color: var(--slate-300); }
+        .text-slate-400 { color: var(--slate-400); }
+        .text-slate-500 { color: var(--slate-500); }
+        .text-slate-600 { color: var(--slate-600); }
+        .text-slate-700 { color: var(--slate-700); }
+        .text-slate-800 { color: var(--slate-800); }
+        .text-slate-900 { color: var(--slate-900); }
+        .text-aviation-600 { color: var(--av-600); }
+        .text-aviation-700 { color: var(--av-700); }
+        
+        .text-emerald-600 { color: var(--emerald-600); }
+        .text-emerald-700 { color: var(--emerald-700); }
+        .text-emerald-800 { color: #065f46; }
+        .text-blue-600 { color: var(--blue-600); }
+        .text-blue-800 { color: var(--blue-800); }
+        .text-red-600 { color: var(--red-600); }
+        .text-red-700 { color: var(--red-700); }
+        .text-amber-500 { color: var(--amber-500); }
+        .text-amber-700 { color: var(--amber-700); }
+
+        .border { border-width: 1px; border-style: solid; }
+        .border-t { border-top-width: 1px; border-top-style: solid; }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-2 { border-width: 2px; }
+        .border-dashed { border-style: dashed; }
+        .border-slate-100 { border-color: var(--slate-100); }
+        .border-slate-200 { border-color: var(--slate-200); }
+        .border-slate-300 { border-color: var(--slate-300); }
+        .border-aviation-300 { border-color: var(--av-300); }
+        .border-emerald-100 { border-color: var(--emerald-100); }
+        .border-emerald-200 { border-color: var(--emerald-200); }
+        .border-blue-100 { border-color: var(--blue-100); }
+        .border-blue-200 { border-color: var(--blue-200); }
+        .border-red-100 { border-color: var(--red-100); }
+        .border-red-200 { border-color: var(--red-200); }
+        .border-t-transparent { border-top-color: transparent; }
+
+        .rounded-md { border-radius: 0.375rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-tl-none { border-top-left-radius: 0; }
+
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .hover\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .hover\:shadow-lg:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+
+        .p-0\.5 { padding: 0.125rem; } .p-1 { padding: 0.25rem; } .p-1\.5 { padding: 0.375rem; } .p-2 { padding: 0.5rem; } .p-3 { padding: 0.75rem; } .p-4 { padding: 1rem; } .p-5 { padding: 1.25rem; } .p-6 { padding: 1.5rem; } .p-8 { padding: 2rem; } .p-12 { padding: 3rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; } .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; } .px-4 { padding-left: 1rem; padding-right: 1rem; } .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; } .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; } .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; } .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; } .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .pt-3 { padding-top: 0.75rem; } .pt-4 { padding-top: 1rem; } .mt-4 { margin-top: 1rem; } .mt-auto { margin-top: auto; } .mb-1 { margin-bottom: 0.25rem; } .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; } .mb-8 { margin-bottom: 2rem; } .mb-12 { margin-bottom: 3rem; }
+
+        .gap-1 { gap: 0.25rem; } .gap-1\.5 { gap: 0.375rem; } .gap-2 { gap: 0.5rem; } .gap-3 { gap: 0.75rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
+
+        .w-full { width: 100%; } .h-full { height: 100%; } .h-screen { height: 100vh; } .min-h-screen { min-height: 100vh; } .max-w-sm { max-width: 24rem; } .max-w-md { max-width: 28rem; } .max-w-2xl { max-width: 42rem; } .max-w-7xl { max-width: 80rem; }
+        .w-2\.5 { width: 0.625rem; } .h-2\.5 { height: 0.625rem; }
+        .w-3 { width: 0.75rem; } .h-3 { height: 0.75rem; }
+        .w-4 { width: 1rem; } .h-4 { height: 1rem; }
+        .w-5 { width: 1.25rem; } .h-5 { height: 1.25rem; }
+        .w-8 { width: 2rem; } .h-8 { height: 2rem; }
+        .w-10 { width: 2.5rem; } .h-10 { height: 2.5rem; }
+        .w-12 { width: 3rem; } .h-12 { height: 3rem; }
+
+        .flex { display: flex; } .flex-col { flex-direction: column; } .flex-1 { flex: 1 1 0%; } .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; } .items-start { align-items: flex-start; } .items-end { align-items: flex-end; } .justify-center { justify-content: center; } .justify-between { justify-content: space-between; }
+        .grid { display: grid; } .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); } .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        
+        .block { display: block; } .hidden { display: none; } .inline-flex { display: inline-flex; }
+
+        .relative { position: relative; } .absolute { position: absolute; } .sticky { position: sticky; } .top-0 { top: 0; } .top-24 { top: 6rem; } .inset-0 { top: 0; right: 0; bottom: 0; left: 0; } .z-30 { z-index: 30; }
+
+        .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        
+        .text-xs { font-size: 0.75rem; line-height: 1rem; } .text-sm { font-size: 0.875rem; line-height: 1.25rem; } .text-lg { font-size: 1.125rem; line-height: 1.75rem; } .text-xl { font-size: 1.25rem; line-height: 1.75rem; } .text-3xl { font-size: 1.875rem; line-height: 2.25rem; } .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; } .uppercase { text-transform: uppercase; } .tracking-tight { letter-spacing: -0.025em; } .tracking-wide { letter-spacing: 0.025em; } .tracking-wider { letter-spacing: 0.05em; }
+        .text-center { text-align: center; } .break-words { overflow-wrap: break-word; } .whitespace-pre-wrap { white-space: pre-wrap; } .italic { font-style: italic; } .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+        .cursor-pointer { cursor: pointer; } .cursor-not-allowed { cursor: not-allowed; }
+        .opacity-0 { opacity: 0; } .opacity-20 { opacity: 0.2; } .opacity-50 { opacity: 0.5; }
+        .outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+        .focus\:ring-2:focus { box-shadow: 0 0 0 2px var(--slate-100), 0 0 0 4px var(--av-500); }
+        .focus\:border-aviation-500:focus { border-color: var(--av-500); }
+        
+        .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* --- RESPONSIVE --- */
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .lg\:col-span-1 { grid-column: span 1 / span 1; }
+            .lg\:col-span-2 { grid-column: span 2 / span 2; }
+            .lg\:col-span-3 { grid-column: span 3 / span 3; }
+            .lg\:sticky { position: sticky; }
+            .lg\:top-24 { top: 6rem; }
+            .lg\:p-6 { padding: 1.5rem; }
+        }
+        @media (min-width: 1280px) {
+            .xl\:flex-row { flex-direction: row; }
+            .xl\:items-end { align-items: flex-end; }
+            .xl\:w-1\/3 { width: 33.333333%; }
+            .xl\:w-auto { width: auto; }
+        }
+    </style>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "htm": "https://esm.sh/htm@3.1.1",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+        "papaparse": "https://esm.sh/papaparse@5.4.1",
+        "date-fns": "https://esm.sh/date-fns@2.30.0",
+        "recharts": "https://esm.sh/recharts@2.12.0",
+        "@google/genai": "https://esm.sh/@google/genai@0.1.1"
+      }
+    }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState, useMemo, useCallback } from 'react';
+        import ReactDOM from 'react-dom/client';
+        import htm from 'htm';
+        import * as Lucide from 'lucide-react';
+        import Papa from 'papaparse';
+        import { format, parse, isValid, isBefore, isAfter, parseISO, getHours, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
+        import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+        import { GoogleGenAI } from '@google/genai';
+
+        const html = htm.bind(React.createElement);
+
+        // --- ICONS ---
+        const { UploadCloud, Search, Clock, Plane, Calendar, CalendarDays, MapPin, Star, AlertCircle, CheckCircle2, List, BarChart2, Bot, LogOut, Plus, X, Ban, DollarSign, Coffee, Layers, Map } = Lucide;
+
+        // --- SERVICES ---
+
+        // CSV Service
+        const DATE_FORMAT = 'MMM dd,yyyy HH:mm';
+        const parseBlockHours = (timeStr) => {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours + (minutes / 60);
+        };
+        const extractLayovers = (details) => {
+            if (!details) return [];
+            const stations = details.split('-').map(s => s.trim()).filter(s => s.length > 0);
+            return Array.from(new Set(stations));
+        };
+        const parseCSV = (file) => {
+            return new Promise((resolve, reject) => {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        const pairings = [];
+                        results.data.forEach((row) => {
+                            try {
+                                const departureString = row['Departure'];
+                                const arrivalString = row['Arrival'];
+                                if (!departureString || !arrivalString) return;
+                                const departureTime = parse(departureString, DATE_FORMAT, new Date());
+                                const arrivalTime = parse(arrivalString, DATE_FORMAT, new Date());
+                                if (!isValid(departureTime) || !isValid(arrivalTime)) return;
+                                pairings.push({
+                                    pairingNumber: row['Pairing'],
+                                    preAssigned: row['Pre-assigned'] || '',
+                                    duration: parseInt(row['Duration'], 10),
+                                    aircraftType: row['AC'],
+                                    departureTime,
+                                    arrivalTime,
+                                    details: row['Pairing details'] || '',
+                                    blockHours: row['Block hours'],
+                                    blockHoursDecimal: parseBlockHours(row['Block hours']),
+                                    layovers: extractLayovers(row['Pairing details'])
+                                });
+                            } catch (e) { console.warn("Failed to parse row", row, e); }
+                        });
+                        resolve(pairings);
+                    },
+                    error: (error) => reject(error)
+                });
+            });
+        };
+
+        // Ranking Service
+        const SCORE_WEIGHTS = {
+            STRATEGY_MONEY: 2,
+            ROUTE: 30,
+            TIME_WINDOW: 20,
+            MAX_DURATION: 15,
+            MAX_LEGS: 15,
+            AVOID_RED_EYE: -50,
+            AVOID_AIRPORT: -100,
+            DAY_OF_WEEK_OFF: -40,
+            SPECIFIC_DATE_OFF: -500,
+        };
+        const rankPairings = (pairings, preferences) => {
+            return pairings.map((pairing) => {
+                let score = 0;
+                const matches = [];
+                const flightDays = eachDayOfInterval({ start: pairing.departureTime, end: pairing.arrivalTime });
+
+                preferences.forEach((pref) => {
+                    switch (pref.type) {
+                        case 'STRATEGY_MONEY':
+                            const moneyPoints = Math.round(pairing.blockHoursDecimal * SCORE_WEIGHTS.STRATEGY_MONEY);
+                            score += moneyPoints;
+                            if (pairing.blockHoursDecimal > 15) matches.push(`High Earnings ($$$)`);
+                            break;
+                        case 'SPECIFIC_DATE_OFF':
+                            const dateToAvoid = new Date(pref.value);
+                            if (flightDays.some(day => isSameDay(day, dateToAvoid))) {
+                                score += SCORE_WEIGHTS.SPECIFIC_DATE_OFF;
+                                matches.push(`Conflicts with ${format(dateToAvoid, 'MMM dd')} (Violated)`);
+                            }
+                            break;
+                        case 'DAY_OF_WEEK_OFF':
+                            const dayToAvoid = parseInt(pref.value, 10);
+                            if (flightDays.some(day => getDay(day) === dayToAvoid)) {
+                                score += SCORE_WEIGHTS.DAY_OF_WEEK_OFF;
+                                matches.push(`Works on a requested Day Off (Violated)`);
+                            } else {
+                                score += 10;
+                                matches.push(`Keeps preferred weekday free`);
+                            }
+                            break;
+                        case 'AVOID_RED_EYE':
+                            const arrHour = getHours(pairing.arrivalTime);
+                            if (arrHour >= 0 && arrHour <= 7) {
+                                score += SCORE_WEIGHTS.AVOID_RED_EYE;
+                                matches.push(`Red Eye Arrival (${arrHour}:00)`);
+                            }
+                            break;
+                        case 'MAX_LEGS_PER_DAY':
+                            const totalLegs = pairing.layovers.length + 1;
+                            const legsPerDay = totalLegs / pairing.duration;
+                            if (legsPerDay <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_LEGS;
+                                matches.push(`Low workload (~${Math.ceil(legsPerDay)} legs/day)`);
+                            }
+                            break;
+                        case 'ROUTE':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.ROUTE;
+                                matches.push(`Route includes ${pref.value}`);
+                            }
+                            break;
+                        case 'TIME_WINDOW':
+                            const [startStr, endStr] = pref.value.split('-');
+                            const depHour = getHours(pairing.departureTime);
+                            if (depHour >= parseInt(startStr, 10) && depHour <= parseInt(endStr, 10)) {
+                                score += SCORE_WEIGHTS.TIME_WINDOW;
+                                matches.push(`Departure between ${startStr}:00-${endStr}:00`);
+                            }
+                            break;
+                        case 'MAX_DURATION':
+                            if (pairing.duration <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_DURATION;
+                                matches.push(`Duration under ${pref.value} days`);
+                            }
+                            break;
+                        case 'AVOID_AIRPORT':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.AVOID_AIRPORT;
+                                matches.push(`Avoids ${pref.value} (Violated)`);
+                            }
+                            break;
+                    }
+                });
+                return { ...pairing, score, matches: Array.from(new Set(matches)) };
+            }).sort((a, b) => b.score - a.score);
+        };
+
+        // Gemini Service
+        const analyzeSchedule = async (pairings, userQuery) => {
+            try {
+                // Warning: This requires API_KEY in env which we don't have here. 
+                // In a real generic app, we'd prompt for it.
+                // Assuming process.env.API_KEY is available or empty.
+                const ai = new GoogleGenAI({ apiKey: 'YOUR_API_KEY_HERE' }); // Placeholder
+                const contextPairings = pairings.slice(0, 30).map(p => ({
+                    id: p.pairingNumber, ac: p.aircraftType, dep: format(p.departureTime, 'MMM dd HH:mm'),
+                    arr: format(p.arrivalTime, 'MMM dd HH:mm'), dur: p.duration, route: p.details
+                }));
+                const prompt = `Assistant for airline pilot. User query: "${userQuery}". Schedule sample: ${JSON.stringify(contextPairings)}`;
+                const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+                return response.text || "No response generated.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "AI Error: Check console. (Note: API Key missing in static demo)";
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const FileUpload = ({ onFileSelect }) => {
+            const handleChange = (e) => { if (e.target.files?.[0]) onFileSelect(e.target.files[0]); };
+            const handleDrop = (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if (e.dataTransfer.files?.[0]) onFileSelect(e.dataTransfer.files[0]);
+            };
+            return html`
+                <div onDrop=${handleDrop} onDragOver=${(e) => {e.preventDefault();}} className="border-2 border-dashed border-aviation-300 rounded-2xl bg-aviation-50 hover:bg-aviation-100 transition-colors cursor-pointer p-12 flex flex-col items-center justify-center text-center group">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                        <${UploadCloud} className="w-10 h-10 text-aviation-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-800 mb-2">Upload your Pairing CSV</h3>
+                    <p className="text-slate-500 mb-6 max-w-sm">Drag and drop your monthly schedule file here, or click to browse.</p>
+                    <label className="relative">
+                        <span className="bg-aviation-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-aviation-700 transition-colors shadow-md hover:shadow-lg cursor-pointer">Select File</span>
+                        <input type="file" accept=".csv" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange=${handleChange} />
+                    </label>
+                </div>
+            `;
+        };
+
+        const FilterPanel = ({ filters, setFilters, uniqueAircraft }) => {
+            const handleAircraftToggle = (ac) => {
+                setFilters(prev => ({
+                    ...prev,
+                    aircraftTypes: prev.aircraftTypes.includes(ac) ? prev.aircraftTypes.filter(t => t !== ac) : [...prev.aircraftTypes, ac]
+                }));
+            };
+            return html`
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-full flex flex-col gap-6">
+                    <div>
+                        <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4"><${Search} className="w-5 h-5 text-aviation-600" /> Search & Filter</h2>
+                        <input type="text" placeholder="Search destination (e.g., MIA)..." className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-aviation-500 outline-none text-sm"
+                            value=${filters.searchQuery} onChange=${(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))} />
+                    </div>
+                    <div className="border-t border-slate-100 pt-4">
+                        <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><${Clock} className="w-4 h-4" /> Duration</h3>
+                        <div className="px-2">
+                            <div className="flex justify-between text-xs text-slate-600 mb-2"><span>${filters.minDuration} days</span><span>${filters.maxDuration} days</span></div>
+                            <input type="range" min="1" max="10" step="1" value=${filters.maxDuration} onChange=${(e) => setFilters(prev => ({ ...prev, maxDuration: parseInt(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg cursor-pointer" />
+                        </div>
+                    </div>
+                    <div className="border-t border-slate-100 pt-4">
+                        <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><${Plane} className="w-4 h-4" /> Aircraft</h3>
+                        <div className="flex flex-wrap gap-2">
+                            ${uniqueAircraft.map(ac => html`
+                                <button key=${ac} onClick=${() => handleAircraftToggle(ac)} className=${`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${filters.aircraftTypes.includes(ac) ? 'bg-aviation-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>${ac}</button>
+                            `)}
+                        </div>
+                    </div>
+                    <div className="border-t border-slate-100 pt-4">
+                        <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><${Calendar} className="w-4 h-4" /> Dates</h3>
+                        <div className="flex flex-col gap-2">
+                            <div className="flex flex-col"><label className="text-xs text-slate-500 mb-1">Start</label><input type="date" className="text-sm border border-slate-300 rounded px-2 py-1 text-slate-700" onChange=${(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} /></div>
+                            <div className="flex flex-col"><label className="text-xs text-slate-500 mb-1">End</label><input type="date" className="text-sm border border-slate-300 rounded px-2 py-1 text-slate-700" onChange=${(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} /></div>
+                        </div>
+                    </div>
+                    <div className="mt-auto pt-4 border-t border-slate-100">
+                        <button onClick=${() => setFilters({ minDuration: 1, maxDuration: 10, aircraftTypes: uniqueAircraft, searchQuery: '', startDate: '', endDate: '', minBlockHours: 0 })} className="w-full py-2 text-sm text-aviation-600 hover:bg-aviation-50 rounded-lg transition-colors">Reset Filters</button>
+                    </div>
+                </div>
+            `;
+        };
+
+        const PreferenceManager = ({ preferences, setPreferences }) => {
+            const [activeType, setActiveType] = useState('ROUTE');
+            const [inputValue, setInputValue] = useState('');
+            const [startTime, setStartTime] = useState('06');
+            const [endTime, setEndTime] = useState('12');
+            const [dateValue, setDateValue] = useState('');
+            const [weekdayValue, setWeekdayValue] = useState('0');
+
+            const addPreference = () => {
+                let value = inputValue;
+                let label = '';
+                if (activeType === 'ROUTE' && !value) return;
+                
+                switch (activeType) {
+                    case 'STRATEGY_MONEY': value = 'true'; label = 'Max Earnings'; break;
+                    case 'AVOID_RED_EYE': value = 'true'; label = 'No Red-Eyes'; break;
+                    case 'SPECIFIC_DATE_OFF': value = dateValue; label = `OFF: ${dateValue}`; break;
+                    case 'DAY_OF_WEEK_OFF': value = weekdayValue; label = `OFF: ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][parseInt(value)]}`; break;
+                    case 'MAX_LEGS_PER_DAY': label = `Max Legs: ${value}`; break;
+                    case 'ROUTE': label = `Route: ${value.toUpperCase()}`; break;
+                    case 'AVOID_AIRPORT': label = `Avoid: ${value.toUpperCase()}`; break;
+                    case 'MAX_DURATION': label = `Max Days: ${value}`; break;
+                    case 'TIME_WINDOW': value = `${startTime}-${endTime}`; label = `Time: ${startTime}-${endTime}`; break;
+                }
+                setPreferences(prev => [...prev, { id: Date.now().toString(), type: activeType, value, label }]);
+                setInputValue('');
+            };
+
+            const getIcon = (type) => {
+                if(type === 'STRATEGY_MONEY') return html`<${DollarSign} className="w-3 h-3" />`;
+                if(type === 'SPECIFIC_DATE_OFF') return html`<${Calendar} className="w-3 h-3" />`;
+                if(type === 'DAY_OF_WEEK_OFF') return html`<${Coffee} className="w-3 h-3" />`;
+                if(type === 'AVOID_RED_EYE' || type === 'AVOID_AIRPORT') return html`<${Ban} className="w-3 h-3" />`;
+                if(type === 'MAX_LEGS_PER_DAY') return html`<${Layers} className="w-3 h-3" />`;
+                if(type === 'TIME_WINDOW') return html`<${Clock} className="w-3 h-3" />`;
+                return html`<${Map} className="w-3 h-3" />`;
+            }
+
+            return html`
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4"><${Star} className="w-5 h-5 text-amber-500" /> Priorities</h2>
+                    <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-end bg-slate-50 p-4 rounded-lg mb-4">
+                        <div className="w-full xl:w-1/3">
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
+                            <select value=${activeType} onChange=${e => setActiveType(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm outline-none">
+                                <optgroup label="Balance">
+                                    <option value="SPECIFIC_DATE_OFF">Block Date Off</option>
+                                    <option value="DAY_OF_WEEK_OFF">Block Weekday Off</option>
+                                    <option value="MAX_DURATION">Limit Duration</option>
+                                    <option value="AVOID_RED_EYE">No Red-Eyes</option>
+                                    <option value="MAX_LEGS_PER_DAY">Limit Legs/Day</option>
+                                </optgroup>
+                                <optgroup label="Strategy">
+                                    <option value="STRATEGY_MONEY">Max Earnings</option>
+                                </optgroup>
+                                <optgroup label="Routing">
+                                    <option value="ROUTE">Prefer Route</option>
+                                    <option value="TIME_WINDOW">Prefer Time</option>
+                                    <option value="AVOID_AIRPORT">Avoid Airport</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div className="w-full xl:w-1/3">
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Value</label>
+                            ${activeType === 'TIME_WINDOW' && html`
+                                <div className="flex gap-2"><select value=${startTime} onChange=${e=>setStartTime(e.target.value)} className="w-full border p-2 rounded">${[...Array(24).keys()].map(h=>html`<option value=${h}>${h}:00</option>`)}</select>
+                                <select value=${endTime} onChange=${e=>setEndTime(e.target.value)} className="w-full border p-2 rounded">${[...Array(24).keys()].map(h=>html`<option value=${h}>${h}:00</option>`)}</select></div>
+                            `}
+                            ${activeType === 'SPECIFIC_DATE_OFF' && html`<input type="date" className="w-full border p-2 rounded" value=${dateValue} onChange=${e=>setDateValue(e.target.value)} />`}
+                            ${activeType === 'DAY_OF_WEEK_OFF' && html`<select value=${weekdayValue} onChange=${e=>setWeekdayValue(e.target.value)} className="w-full border p-2 rounded"><option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option><option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option></select>`}
+                            ${['ROUTE','AVOID_AIRPORT','MAX_DURATION','MAX_LEGS_PER_DAY'].includes(activeType) && html`<input type="text" className="w-full border p-2 rounded" value=${inputValue} onChange=${e=>setInputValue(e.target.value)} placeholder="Value..." />`}
+                        </div>
+                        <button onClick=${addPreference} className="bg-aviation-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-aviation-700 w-full xl:w-auto"><${Plus} className="w-4 h-4 inline" /> Add</button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        ${preferences.map(pref => html`
+                            <div key=${pref.id} className=${`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${['AVOID_AIRPORT','AVOID_RED_EYE','SPECIFIC_DATE_OFF'].includes(pref.type) ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-800 border-blue-100'}`}>
+                                ${getIcon(pref.type)} ${pref.label} <button onClick=${() => setPreferences(p=>p.filter(x=>x.id!==pref.id))}><${X} className="w-3 h-3" /></button>
+                            </div>
+                        `)}
+                    </div>
+                </div>
+            `;
+        };
+
+        const PairingCard = ({ pairing }) => {
+            const routeDisplay = pairing.details.replace(/-/g, ' → ');
+            const scoreClass = pairing.score >= 50 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : pairing.score > 0 ? 'text-blue-600 bg-blue-50 border-blue-200' : pairing.score < 0 ? 'text-red-600 bg-red-50 border-red-200' : 'text-slate-500 bg-slate-100 border-slate-200';
+            
+            return html`
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:border-aviation-300 flex flex-col h-full p-5">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1"><span className="text-lg font-bold text-slate-900">Pairing ${pairing.pairingNumber}</span>${pairing.preAssigned && html`<span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">PRE</span>`}</div>
+                            <div className="flex items-center gap-2 text-sm text-slate-500"><${Plane} className="w-3 h-3" /><span>${pairing.aircraftType}</span></div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                            <div className=${`px-2 py-1 rounded-lg text-sm font-bold border flex items-center gap-1 ${scoreClass}`}><${Star} className="w-3 h-3 fill-current" /> ${pairing.score}</div>
+                            <div className="text-xs text-slate-400 font-medium">${pairing.duration} Days • ${pairing.blockHours} BH</div>
+                        </div>
+                    </div>
+                    ${pairing.matches?.length > 0 && html`
+                        <div className="mb-4 flex flex-wrap gap-1.5">
+                            ${pairing.matches.map(match => {
+                                const isBad = match.includes('Violated') || match.includes('Conflicts');
+                                return html`<span className=${`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${isBad ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>${isBad ? html`<${AlertCircle} className="w-2.5 h-2.5" />` : html`<${CheckCircle2} className="w-2.5 h-2.5" />`} ${match}</span>`
+                            })}
+                        </div>
+                    `}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="bg-slate-50 p-3 rounded-lg"><div className="text-xs text-slate-400 mb-1 flex items-center gap-1"><${CalendarDays} className="w-3 h-3" /> Dep</div><div className="font-semibold text-slate-700 text-sm">${format(pairing.departureTime, 'MMM dd')}</div><div className="text-xs text-slate-500">${format(pairing.departureTime, 'HH:mm')}</div></div>
+                        <div className="bg-slate-50 p-3 rounded-lg"><div className="text-xs text-slate-400 mb-1 flex items-center gap-1"><${Clock} className="w-3 h-3" /> Arr</div><div className="font-semibold text-slate-700 text-sm">${format(pairing.arrivalTime, 'MMM dd')}</div><div className="text-xs text-slate-500">${format(pairing.arrivalTime, 'HH:mm')}</div></div>
+                    </div>
+                    <div className="border-t border-slate-100 pt-3 mt-auto flex items-start gap-2">
+                        <${MapPin} className="w-4 h-4 text-slate-400 shrink-0" /><p className="text-xs text-slate-600 font-mono break-words">${routeDisplay}</p>
+                    </div>
+                </div>
+            `;
+        };
+
+        const StatsView = ({ pairings }) => {
+            const data = Object.entries(pairings.reduce((acc, p) => ({...acc, [p.duration]: (acc[p.duration]||0)+1}), {})).map(([k,v]) => ({name:`${k} Days`, count:v}));
+            const acData = Object.entries(pairings.reduce((acc, p) => ({...acc, [p.aircraftType]: (acc[p.aircraftType]||0)+1}), {})).map(([k,v]) => ({name:k, count:v}));
+            
+            return html`
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4">Duration Dist.</h3>
+                        <div className="h-64"><${ResponsiveContainer}><${BarChart} data=${data}><${XAxis} dataKey="name" /><${YAxis} /><${Tooltip} /><${Bar} dataKey="count" fill="#0ea5e9" /></${BarChart}></${ResponsiveContainer}></div>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4">Aircraft Type</h3>
+                        <div className="h-64"><${ResponsiveContainer}><${BarChart} data=${acData} layout="vertical"><${XAxis} type="number" /><${YAxis} dataKey="name" type="category" width=${50} /><${Tooltip} /><${Bar} dataKey="count" fill="#0284c7" /></${BarChart}></${ResponsiveContainer}></div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const App = () => {
+            const [pairings, setPairings] = useState([]);
+            const [filters, setFilters] = useState({ minDuration: 1, maxDuration: 10, aircraftTypes: [], searchQuery: '', startDate: '', endDate: '', minBlockHours: 0 });
+            const [preferences, setPreferences] = useState([]);
+            const [viewMode, setViewMode] = useState('LIST');
+            const [uniqueAircraft, setUniqueAircraft] = useState([]);
+            const [aiQuery, setAiQuery] = useState('');
+            const [aiResponse, setAiResponse] = useState('');
+
+            const handleFileSelect = async (file) => {
+                const data = await parseCSV(file);
+                setPairings(data);
+                const acTypes = Array.from(new Set(data.map(p => p.aircraftType))).sort();
+                setUniqueAircraft(acTypes);
+                setFilters(p => ({ ...p, aircraftTypes: acTypes }));
+            };
+
+            const filteredPairings = useMemo(() => pairings.filter(p => {
+                if(p.duration > filters.maxDuration) return false;
+                if(filters.aircraftTypes.length && !filters.aircraftTypes.includes(p.aircraftType)) return false;
+                if(filters.startDate && isBefore(p.departureTime, parseISO(filters.startDate))) return false;
+                if(filters.endDate && isAfter(p.departureTime, parseISO(filters.endDate))) return false;
+                if(filters.searchQuery && !`${p.pairingNumber} ${p.details}`.toLowerCase().includes(filters.searchQuery.toLowerCase())) return false;
+                return true;
+            }), [pairings, filters]);
+
+            const scoredPairings = useMemo(() => rankPairings(filteredPairings, preferences), [filteredPairings, preferences]);
+
+            if (pairings.length === 0) return html`
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+                    <div className="text-center max-w-2xl">
+                        <div className="mb-8 flex justify-center"><div className="bg-aviation-600 p-4 rounded-2xl shadow-lg"><${Plane} className="w-12 h-12 text-white" /></div></div>
+                        <h1 className="text-4xl font-bold text-slate-900 mb-4">PilotBid Pro</h1>
+                        <p className="text-slate-600 mb-12">The intelligent way to bid. Upload your monthly pairing CSV.</p>
+                        <${FileUpload} onFileSelect=${handleFileSelect} />
+                    </div>
+                </div>
+            `;
+
+            return html`
+                <div className="min-h-screen bg-slate-50 flex flex-col">
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 h-16 flex items-center justify-between">
+                        <div className="flex items-center gap-3"><span className="font-bold text-slate-800 text-lg">PilotBid Pro</span><span className="text-slate-500 text-sm">${pairings.length} Pairings</span></div>
+                        <button onClick=${() => setPairings([])} className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50"><${LogOut} className="w-4 h-4" /> Reset</button>
+                    </header>
+                    <main className="max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className="lg:col-span-1 lg:sticky lg:top-24 h-fit"><${FilterPanel} filters=${filters} setFilters=${setFilters} uniqueAircraft=${uniqueAircraft} /></div>
+                        <div className="lg:col-span-3 flex flex-col gap-6">
+                            <div className="bg-white p-1 rounded-xl border border-slate-200 inline-flex self-start shadow-sm">
+                                <button onClick=${() => setViewMode('LIST')} className=${`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${viewMode === 'LIST' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}`}><${List} className="w-4 h-4" /> Pairings</button>
+                                <button onClick=${() => setViewMode('STATS')} className=${`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${viewMode === 'STATS' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}`}><${BarChart2} className="w-4 h-4" /> Stats</button>
+                                <button onClick=${() => setViewMode('AI')} className=${`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${viewMode === 'AI' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}`}><${Bot} className="w-4 h-4" /> AI</button>
+                            </div>
+                            ${viewMode === 'LIST' && html`
+                                <${PreferenceManager} preferences=${preferences} setPreferences=${setPreferences} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    ${scoredPairings.slice(0, 100).map(p => html`<${PairingCard} key=${p.pairingNumber + p.departureTime} pairing=${p} />`)}
+                                </div>
+                            `}
+                            ${viewMode === 'STATS' && html`<${StatsView} pairings=${filteredPairings} />`}
+                            ${viewMode === 'AI' && html`
+                                <div className="bg-white rounded-xl border border-slate-200 h-[600px] flex flex-col">
+                                    <div className="flex-1 p-6 overflow-y-auto">${aiResponse || html`<div className="text-center text-slate-400 mt-20">Ask a question about your schedule.</div>`}</div>
+                                    <div className="p-4 border-t flex gap-2">
+                                        <input className="flex-1 border p-2 rounded" value=${aiQuery} onChange=${e=>setAiQuery(e.target.value)} placeholder="Ask..." />
+                                        <button onClick=${async () => setAiResponse(await analyzeSchedule(scoredPairings, aiQuery))} className="bg-aviation-600 text-white px-4 rounded">Ask</button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    </main>
+                </div>
+            `;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(html`<${React.StrictMode}><${App} /><//>`);
+    </script>
+</body>
+</html>
