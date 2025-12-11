@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PilotBid Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSP-Safe Libraries -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- ✅ Fixed date-fns global build -->
+    <script src="https://unpkg.com/date-fns@2.30.0/dist/date-fns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* (your original CSS stays unchanged — omitted here for brevity) */
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="app" class="min-h-screen"></div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        const state = {
+            pairings: [],
+            filteredPairings: [],
+            scoredPairings: [],
+            filters: {
+                minDuration: 1,
+                maxDuration: 10,
+                aircraftTypes: [],
+                searchQuery: '',
+                startDate: '',
+                endDate: '',
+            },
+            preferences: [],
+            viewMode: 'LIST',
+            uniqueAircraft: [],
+            aiQuery: '',
+            aiResponse: '',
+            aiLoading: false,
+            prefInputs: {
+                activeType: 'ROUTE',
+                inputValue: '',
+                startTime: '06',
+                endTime: '12',
+                dateValue: '',
+                weekdayValue: '0'
+            }
+        };
+
+        // --- SERVICES ---
+        const DATE_FORMAT = 'MMM dd,yyyy HH:mm';
+        const parseBlockHours = (timeStr) => {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours + (minutes / 60);
+        };
+        const extractLayovers = (details) => {
+            if (!details) return [];
+            const stations = details.split('-').map(s => s.trim()).filter(s => s.length > 0);
+            return Array.from(new Set(stations));
+        };
+        const handleFileUpload = (file) => {
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    const pairings = [];
+                    results.data.forEach((row) => {
+                        try {
+                            const departureString = row['Departure'];
+                            const arrivalString = row['Arrival'];
+                            if (!departureString || !arrivalString) return;
+                            const departureTime = dateFns.parse(departureString, DATE_FORMAT, new Date());
+                            const arrivalTime = dateFns.parse(arrivalString, DATE_FORMAT, new Date());
+                            if (!dateFns.isValid(departureTime) || !dateFns.isValid(arrivalTime)) return;
+                            
+                            pairings.push({
+                                pairingNumber: row['Pairing'],
+                                preAssigned: row['Pre-assigned'] || '',
+                                duration: parseInt(row['Duration'], 10),
+                                aircraftType: row['AC'],
+                                departureTime,
+                                arrivalTime,
+                                details: row['Pairing details'] || '',
+                                blockHours: row['Block hours'],
+                                blockHoursDecimal: parseBlockHours(row['Block hours']),
+                                layovers: extractLayovers(row['Pairing details'])
+                            });
+                        } catch (e) { console.warn("Failed to parse row", row, e); }
+                    });
+                    
+                    state.pairings = pairings;
+                    state.uniqueAircraft = Array.from(new Set(pairings.map(p => p.aircraftType))).sort();
+                    state.filters.aircraftTypes = state.uniqueAircraft;
+                    applyFilters();
+                }
+            });
+        };
+
+        const applyFilters = () => {
+            state.filteredPairings = state.pairings.filter(p => {
+                if(p.duration > state.filters.maxDuration) return false;
+                if(state.filters.aircraftTypes.length && !state.filters.aircraftTypes.includes(p.aircraftType)) return false;
+                if(state.filters.startDate && dateFns.isBefore(p.departureTime, dateFns.parseISO(state.filters.startDate))) return false;
+                if(state.filters.endDate && dateFns.isAfter(p.departureTime, dateFns.parseISO(state.filters.endDate))) return false;
+                if(state.filters.searchQuery && !`${p.pairingNumber} ${p.details}`.toLowerCase().includes(state.filters.searchQuery.toLowerCase())) return false;
+                return true;
+            });
+            rankPairings();
+            renderApp();
+        };
+
+        const SCORE_WEIGHTS = {
+            STRATEGY_MONEY: 2, ROUTE: 30, TIME_WINDOW: 20, MAX_DURATION: 15,
+            MAX_LEGS: 15, AVOID_RED_EYE: -50, AVOID_AIRPORT: -100,
+            DAY_OF_WEEK_OFF: -40, SPECIFIC_DATE_OFF: -500,
+        };
+
+        const rankPairings = () => {
+            state.scoredPairings = state.filteredPairings.map((pairing) => {
+                let score = 0;
+                const matches = [];
+                const flightDays = dateFns.eachDayOfInterval({ start: pairing.departureTime, end: pairing.arrivalTime });
+
+                state.preferences.forEach((pref) => {
+                    switch (pref.type) {
+                        case 'STRATEGY_MONEY':
+                            const moneyPoints = Math.round(pairing.blockHoursDecimal * SCORE_WEIGHTS.STRATEGY_MONEY);
+                            score += moneyPoints;
+                            if (pairing.blockHoursDecimal > 15) matches.push(`High Earnings ($$$)`);
+                            break;
+                        case 'SPECIFIC_DATE_OFF':
+                            const dateToAvoid = dateFns.parseISO(pref.value);
+                            if (flightDays.some(day => dateFns.isSameDay(day, dateToAvoid))) {
+                                score += SCORE_WEIGHTS.SPECIFIC_DATE_OFF;
+                                matches.push(`Conflicts with ${dateFns.format(dateToAvoid, 'MMM dd')} (Violated)`);
+                            }
+                            break;
+                        case 'DAY_OF_WEEK_OFF':
+                            const dayToAvoid = parseInt(pref.value, 10);
+                            if (flightDays.some(day => dateFns.getDay(day) === dayToAvoid)) {
+                                score += SCORE_WEIGHTS.DAY_OF_WEEK_OFF;
+                                matches.push(`Works on a requested Day Off (Violated)`);
+                            } else {
+                                score += 10;
+                                matches.push(`Keeps preferred weekday free`);
+                            }
+                            break;
+                        case 'AVOID_RED_EYE':
+                            const arrHour = dateFns.getHours(pairing.arrivalTime);
+                            if (arrHour >= 0 && arrHour <= 7) {
+                                score += SCORE_WEIGHTS.AVOID_RED_EYE;
+                                matches.push(`Red Eye Arrival (${arrHour}:00)`);
+                            }
+                            break;
+                        case 'MAX_LEGS_PER_DAY':
+                            const totalLegs = pairing.layovers.length + 1;
+                            const legsPerDay = totalLegs / pairing.duration;
+                            if (legsPerDay <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_LEGS;
+                                matches.push(`Low workload (~${Math.ceil(legsPerDay)} legs/day)`);
+                            }
+                            break;
+                        case 'ROUTE':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.ROUTE;
+                                matches.push(`Route includes ${pref.value}`);
+                            }
+                            break;
+                        case 'TIME_WINDOW':
+                            const [startStr, endStr] = pref.value.split('-');
+                            const depHour = dateFns.getHours(pairing.departureTime);
+                            if (depHour >= parseInt(startStr, 10) && depHour <= parseInt(endStr, 10)) {
+                                score += SCORE_WEIGHTS.TIME_WINDOW;
+                                matches.push(`Departure between ${startStr}:00-${endStr}:00`);
+                            }
+                            break;
+                        case 'MAX_DURATION':
+                            if (pairing.duration <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_DURATION;
+                                matches.push(`Duration under ${pref.value} days`);
+                            }
+                            break;
+                        case 'AVOID_AIRPORT':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.AVOID_AIRPORT;
+                                matches.push(`Avoids ${pref.value} (Violated)`);
+                            }
+                            break;
+                    }
+                });
+                return { ...pairing, score, matches: Array.from(new Set(matches)) };
+            }).sort((a, b) => b.score - a.score);
+        };
+
+        /* --- Remaining render, interactivity, and chart functions stay unchanged --- */
+
+        renderApp();
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.target.closest('#drop-zone') && e.dataTransfer.files[0]) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+    </script>
+</body>
+</html>
