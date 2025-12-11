@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PilotBid Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSP-Safe Libraries -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date_fns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- RESET & BASE --- */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; color: #0f172a; }
+        button, input, select { font: inherit; }
+        
+        /* --- COLORS --- */
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b; --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+            --av-50: #f0f9ff; --av-100: #e0f2fe; --av-200: #bae6fd; --av-300: #7dd3fc; --av-400: #38bdf8; --av-500: #0ea5e9; --av-600: #0284c7; --av-700: #0369a1; --av-800: #075985;
+            --emerald-50: #ecfdf5; --emerald-100: #d1fae5; --emerald-200: #a7f3d0; --emerald-600: #059669; --emerald-700: #047857;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-600: #dc2626; --red-700: #b91c1c;
+            --amber-100: #fef3c7; --amber-500: #f59e0b; --amber-700: #b45309;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-600: #2563eb; --blue-800: #1e40af;
+        }
+
+        /* --- UTILITIES --- */
+        .bg-white { background-color: white; }
+        .bg-slate-50 { background-color: var(--slate-50); }
+        .bg-slate-100 { background-color: var(--slate-100); }
+        .bg-aviation-50 { background-color: var(--av-50); }
+        .bg-aviation-100 { background-color: var(--av-100); }
+        .bg-aviation-500 { background-color: var(--av-500); }
+        .bg-aviation-600 { background-color: var(--av-600); }
+        
+        .bg-emerald-50 { background-color: var(--emerald-50); }
+        .bg-blue-50 { background-color: var(--blue-50); }
+        .bg-red-50 { background-color: var(--red-50); }
+        .bg-amber-100 { background-color: var(--amber-100); }
+
+        .hover\:bg-aviation-700:hover { background-color: var(--av-700); }
+        .hover\:bg-slate-50:hover { background-color: var(--slate-50); }
+        .hover\:bg-slate-200:hover { background-color: var(--slate-200); }
+        .hover\:bg-red-50:hover { background-color: var(--red-50); }
+        .hover\:scale-110:hover { transform: scale(1.1); }
+        .group:hover .group-hover\:scale-110 { transform: scale(1.1); }
+
+        .text-white { color: white; }
+        .text-slate-300 { color: var(--slate-300); }
+        .text-slate-400 { color: var(--slate-400); }
+        .text-slate-500 { color: var(--slate-500); }
+        .text-slate-600 { color: var(--slate-600); }
+        .text-slate-700 { color: var(--slate-700); }
+        .text-slate-800 { color: var(--slate-800); }
+        .text-slate-900 { color: var(--slate-900); }
+        .text-aviation-600 { color: var(--av-600); }
+        .text-aviation-700 { color: var(--av-700); }
+        .text-aviation-100 { color: var(--av-100); }
+        
+        .text-emerald-600 { color: var(--emerald-600); }
+        .text-emerald-700 { color: var(--emerald-700); }
+        .text-emerald-800 { color: #065f46; }
+        .text-blue-600 { color: var(--blue-600); }
+        .text-blue-800 { color: var(--blue-800); }
+        .text-red-600 { color: var(--red-600); }
+        .text-red-700 { color: var(--red-700); }
+        .text-amber-500 { color: var(--amber-500); }
+        .text-amber-700 { color: var(--amber-700); }
+
+        .border { border-width: 1px; border-style: solid; }
+        .border-t { border-top-width: 1px; border-top-style: solid; }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-2 { border-width: 2px; }
+        .border-dashed { border-style: dashed; }
+        .border-slate-100 { border-color: var(--slate-100); }
+        .border-slate-200 { border-color: var(--slate-200); }
+        .border-slate-300 { border-color: var(--slate-300); }
+        .border-aviation-300 { border-color: var(--av-300); }
+        .border-emerald-100 { border-color: var(--emerald-100); }
+        .border-emerald-200 { border-color: var(--emerald-200); }
+        .border-blue-100 { border-color: var(--blue-100); }
+        .border-blue-200 { border-color: var(--blue-200); }
+        .border-red-100 { border-color: var(--red-100); }
+        .border-red-200 { border-color: var(--red-200); }
+        .border-t-transparent { border-top-color: transparent; }
+
+        .rounded-md { border-radius: 0.375rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-tl-none { border-top-left-radius: 0; }
+
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .hover\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .hover\:shadow-lg:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+
+        .p-0\.5 { padding: 0.125rem; } .p-1 { padding: 0.25rem; } .p-1\.5 { padding: 0.375rem; } .p-2 { padding: 0.5rem; } .p-3 { padding: 0.75rem; } .p-4 { padding: 1rem; } .p-5 { padding: 1.25rem; } .p-6 { padding: 1.5rem; } .p-8 { padding: 2rem; } .p-12 { padding: 3rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; } .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; } .px-4 { padding-left: 1rem; padding-right: 1rem; } .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; } .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; } .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; } .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; } .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .pt-3 { padding-top: 0.75rem; } .pt-4 { padding-top: 1rem; } .mt-4 { margin-top: 1rem; } .mt-auto { margin-top: auto; } .mb-1 { margin-bottom: 0.25rem; } .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; } .mb-8 { margin-bottom: 2rem; } .mb-12 { margin-bottom: 3rem; }
+
+        .gap-1 { gap: 0.25rem; } .gap-1\.5 { gap: 0.375rem; } .gap-2 { gap: 0.5rem; } .gap-3 { gap: 0.75rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
+
+        .w-full { width: 100%; } .h-full { height: 100%; } .h-screen { height: 100vh; } .min-h-screen { min-height: 100vh; } .max-w-sm { max-width: 24rem; } .max-w-md { max-width: 28rem; } .max-w-2xl { max-width: 42rem; } .max-w-7xl { max-width: 80rem; }
+        .w-2\.5 { width: 0.625rem; } .h-2\.5 { height: 0.625rem; }
+        .w-3 { width: 0.75rem; } .h-3 { height: 0.75rem; }
+        .w-4 { width: 1rem; } .h-4 { height: 1rem; }
+        .w-5 { width: 1.25rem; } .h-5 { height: 1.25rem; }
+        .w-8 { width: 2rem; } .h-8 { height: 2rem; }
+        .w-10 { width: 2.5rem; } .h-10 { height: 2.5rem; }
+        .w-12 { width: 3rem; } .h-12 { height: 3rem; }
+
+        .flex { display: flex; } .flex-col { flex-direction: column; } .flex-1 { flex: 1 1 0%; } .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; } .items-start { align-items: flex-start; } .items-end { align-items: flex-end; } .justify-center { justify-content: center; } .justify-between { justify-content: space-between; }
+        .grid { display: grid; } .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); } .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        
+        .block { display: block; } .hidden { display: none; } .inline-flex { display: inline-flex; }
+
+        .relative { position: relative; } .absolute { position: absolute; } .sticky { position: sticky; } .top-0 { top: 0; } .top-24 { top: 6rem; } .inset-0 { top: 0; right: 0; bottom: 0; left: 0; } .z-30 { z-index: 30; }
+
+        .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        
+        .text-xs { font-size: 0.75rem; line-height: 1rem; } .text-sm { font-size: 0.875rem; line-height: 1.25rem; } .text-lg { font-size: 1.125rem; line-height: 1.75rem; } .text-xl { font-size: 1.25rem; line-height: 1.75rem; } .text-3xl { font-size: 1.875rem; line-height: 2.25rem; } .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; } .uppercase { text-transform: uppercase; } .tracking-tight { letter-spacing: -0.025em; } .tracking-wide { letter-spacing: 0.025em; } .tracking-wider { letter-spacing: 0.05em; }
+        .text-center { text-align: center; } .break-words { overflow-wrap: break-word; } .whitespace-pre-wrap { white-space: pre-wrap; } .italic { font-style: italic; } .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+        .cursor-pointer { cursor: pointer; } .cursor-not-allowed { cursor: not-allowed; }
+        .opacity-0 { opacity: 0; } .opacity-20 { opacity: 0.2; } .opacity-50 { opacity: 0.5; }
+        .outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+        .focus\:ring-2:focus { box-shadow: 0 0 0 2px var(--slate-100), 0 0 0 4px var(--av-500); }
+        .focus\:border-aviation-500:focus { border-color: var(--av-500); }
+        
+        .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* --- RESPONSIVE --- */
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .lg\:col-span-1 { grid-column: span 1 / span 1; }
+            .lg\:col-span-2 { grid-column: span 2 / span 2; }
+            .lg\:col-span-3 { grid-column: span 3 / span 3; }
+            .lg\:sticky { position: sticky; }
+            .lg\:top-24 { top: 6rem; }
+            .lg\:p-6 { padding: 1.5rem; }
+        }
+        @media (min-width: 1280px) {
+            .xl\:flex-row { flex-direction: row; }
+            .xl\:items-end { align-items: flex-end; }
+            .xl\:w-1\/3 { width: 33.333333%; }
+            .xl\:w-auto { width: auto; }
+        }
+
+        /* --- CHART JS OVERRIDE --- */
+        canvas { width: 100% !important; height: 100% !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="app" class="min-h-screen"></div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        const state = {
+            pairings: [],
+            filteredPairings: [],
+            scoredPairings: [],
+            filters: {
+                minDuration: 1,
+                maxDuration: 10,
+                aircraftTypes: [],
+                searchQuery: '',
+                startDate: '',
+                endDate: '',
+            },
+            preferences: [],
+            viewMode: 'LIST', // LIST, STATS, AI
+            uniqueAircraft: [],
+            aiQuery: '',
+            aiResponse: '',
+            aiLoading: false,
+            
+            // Preference Inputs State
+            prefInputs: {
+                activeType: 'ROUTE',
+                inputValue: '',
+                startTime: '06',
+                endTime: '12',
+                dateValue: '',
+                weekdayValue: '0'
+            }
+        };
+
+        // --- SERVICES ---
+
+        // CSV Service
+        const DATE_FORMAT = 'MMM dd,yyyy HH:mm';
+        const parseBlockHours = (timeStr) => {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours + (minutes / 60);
+        };
+        const extractLayovers = (details) => {
+            if (!details) return [];
+            const stations = details.split('-').map(s => s.trim()).filter(s => s.length > 0);
+            return Array.from(new Set(stations));
+        };
+        const handleFileUpload = (file) => {
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    const pairings = [];
+                    results.data.forEach((row) => {
+                        try {
+                            const departureString = row['Departure'];
+                            const arrivalString = row['Arrival'];
+                            if (!departureString || !arrivalString) return;
+                            const departureTime = dateFns.parse(departureString, DATE_FORMAT, new Date());
+                            const arrivalTime = dateFns.parse(arrivalString, DATE_FORMAT, new Date());
+                            if (!dateFns.isValid(departureTime) || !dateFns.isValid(arrivalTime)) return;
+                            
+                            pairings.push({
+                                pairingNumber: row['Pairing'],
+                                preAssigned: row['Pre-assigned'] || '',
+                                duration: parseInt(row['Duration'], 10),
+                                aircraftType: row['AC'],
+                                departureTime,
+                                arrivalTime,
+                                details: row['Pairing details'] || '',
+                                blockHours: row['Block hours'],
+                                blockHoursDecimal: parseBlockHours(row['Block hours']),
+                                layovers: extractLayovers(row['Pairing details'])
+                            });
+                        } catch (e) { console.warn("Failed to parse row", row, e); }
+                    });
+                    
+                    state.pairings = pairings;
+                    state.uniqueAircraft = Array.from(new Set(pairings.map(p => p.aircraftType))).sort();
+                    state.filters.aircraftTypes = state.uniqueAircraft;
+                    applyFilters();
+                }
+            });
+        };
+
+        // Filter Logic
+        const applyFilters = () => {
+            state.filteredPairings = state.pairings.filter(p => {
+                if(p.duration > state.filters.maxDuration) return false;
+                if(state.filters.aircraftTypes.length && !state.filters.aircraftTypes.includes(p.aircraftType)) return false;
+                if(state.filters.startDate && dateFns.isBefore(p.departureTime, dateFns.parseISO(state.filters.startDate))) return false;
+                if(state.filters.endDate && dateFns.isAfter(p.departureTime, dateFns.parseISO(state.filters.endDate))) return false;
+                if(state.filters.searchQuery && !`${p.pairingNumber} ${p.details}`.toLowerCase().includes(state.filters.searchQuery.toLowerCase())) return false;
+                return true;
+            });
+            rankPairings();
+            renderApp();
+        };
+
+        // Ranking Logic
+        const SCORE_WEIGHTS = {
+            STRATEGY_MONEY: 2, ROUTE: 30, TIME_WINDOW: 20, MAX_DURATION: 15,
+            MAX_LEGS: 15, AVOID_RED_EYE: -50, AVOID_AIRPORT: -100,
+            DAY_OF_WEEK_OFF: -40, SPECIFIC_DATE_OFF: -500,
+        };
+
+        const rankPairings = () => {
+            state.scoredPairings = state.filteredPairings.map((pairing) => {
+                let score = 0;
+                const matches = [];
+                const flightDays = dateFns.eachDayOfInterval({ start: pairing.departureTime, end: pairing.arrivalTime });
+
+                state.preferences.forEach((pref) => {
+                    switch (pref.type) {
+                        case 'STRATEGY_MONEY':
+                            const moneyPoints = Math.round(pairing.blockHoursDecimal * SCORE_WEIGHTS.STRATEGY_MONEY);
+                            score += moneyPoints;
+                            if (pairing.blockHoursDecimal > 15) matches.push(`High Earnings ($$$)`);
+                            break;
+                        case 'SPECIFIC_DATE_OFF':
+                            const dateToAvoid = dateFns.parseISO(pref.value);
+                            if (flightDays.some(day => dateFns.isSameDay(day, dateToAvoid))) {
+                                score += SCORE_WEIGHTS.SPECIFIC_DATE_OFF;
+                                matches.push(`Conflicts with ${dateFns.format(dateToAvoid, 'MMM dd')} (Violated)`);
+                            }
+                            break;
+                        case 'DAY_OF_WEEK_OFF':
+                            const dayToAvoid = parseInt(pref.value, 10);
+                            if (flightDays.some(day => dateFns.getDay(day) === dayToAvoid)) {
+                                score += SCORE_WEIGHTS.DAY_OF_WEEK_OFF;
+                                matches.push(`Works on a requested Day Off (Violated)`);
+                            } else {
+                                score += 10;
+                                matches.push(`Keeps preferred weekday free`);
+                            }
+                            break;
+                        case 'AVOID_RED_EYE':
+                            const arrHour = dateFns.getHours(pairing.arrivalTime);
+                            if (arrHour >= 0 && arrHour <= 7) {
+                                score += SCORE_WEIGHTS.AVOID_RED_EYE;
+                                matches.push(`Red Eye Arrival (${arrHour}:00)`);
+                            }
+                            break;
+                        case 'MAX_LEGS_PER_DAY':
+                            const totalLegs = pairing.layovers.length + 1;
+                            const legsPerDay = totalLegs / pairing.duration;
+                            if (legsPerDay <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_LEGS;
+                                matches.push(`Low workload (~${Math.ceil(legsPerDay)} legs/day)`);
+                            }
+                            break;
+                        case 'ROUTE':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.ROUTE;
+                                matches.push(`Route includes ${pref.value}`);
+                            }
+                            break;
+                        case 'TIME_WINDOW':
+                            const [startStr, endStr] = pref.value.split('-');
+                            const depHour = dateFns.getHours(pairing.departureTime);
+                            if (depHour >= parseInt(startStr, 10) && depHour <= parseInt(endStr, 10)) {
+                                score += SCORE_WEIGHTS.TIME_WINDOW;
+                                matches.push(`Departure between ${startStr}:00-${endStr}:00`);
+                            }
+                            break;
+                        case 'MAX_DURATION':
+                            if (pairing.duration <= parseInt(pref.value, 10)) {
+                                score += SCORE_WEIGHTS.MAX_DURATION;
+                                matches.push(`Duration under ${pref.value} days`);
+                            }
+                            break;
+                        case 'AVOID_AIRPORT':
+                            if (pairing.details.toUpperCase().includes(pref.value.toUpperCase())) {
+                                score += SCORE_WEIGHTS.AVOID_AIRPORT;
+                                matches.push(`Avoids ${pref.value} (Violated)`);
+                            }
+                            break;
+                    }
+                });
+                return { ...pairing, score, matches: Array.from(new Set(matches)) };
+            }).sort((a, b) => b.score - a.score);
+        };
+
+        // AI Service (Fetch)
+        const analyzeSchedule = async () => {
+            if (!state.aiQuery) return;
+            state.aiLoading = true;
+            renderApp(); // update UI for loading
+
+            try {
+                const contextPairings = state.scoredPairings.slice(0, 30).map(p => ({
+                    id: p.pairingNumber, ac: p.aircraftType, dep: dateFns.format(p.departureTime, 'MMM dd HH:mm'),
+                    arr: dateFns.format(p.arrivalTime, 'MMM dd HH:mm'), dur: p.duration, route: p.details
+                }));
+                const prompt = `Assistant for airline pilot. User query: "${state.aiQuery}". Schedule sample: ${JSON.stringify(contextPairings)}`;
+                
+                // Using Gemini REST API directly to avoid module loaders
+                // NOTE: User must provide API key. Since we can't safely store it in client side code, 
+                // we will placeholder it. In a real app, prompt user for key.
+                const apiKey = "YOUR_API_KEY_HERE"; 
+                if(apiKey === "YOUR_API_KEY_HERE") {
+                   throw new Error("API Key missing. Please configure the API Key in the source code or provide it.");
+                }
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                const data = await response.json();
+                state.aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
+            } catch (error) {
+                console.error(error);
+                state.aiResponse = "AI Error: API Key missing or network error. (See console)";
+            } finally {
+                state.aiLoading = false;
+                renderApp();
+            }
+        };
+
+        // --- RENDERERS (HTML STRING GENERATORS) ---
+
+        const getIcon = (name, cls="w-4 h-4") => `<i data-lucide="${name}" class="${cls}"></i>`;
+
+        const renderLanding = () => `
+            <div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+                <div class="text-center max-w-2xl">
+                    <div class="mb-8 flex justify-center"><div class="bg-aviation-600 p-4 rounded-2xl shadow-lg">${getIcon('plane', 'w-12 h-12 text-white')}</div></div>
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">PilotBid Pro</h1>
+                    <p class="text-slate-600 mb-12">The intelligent way to bid. Upload your monthly pairing CSV.</p>
+                    <div id="drop-zone" class="border-2 border-dashed border-aviation-300 rounded-2xl bg-aviation-50 hover:bg-aviation-100 transition-colors cursor-pointer p-12 flex flex-col items-center justify-center text-center group relative">
+                         <div class="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">${getIcon('upload-cloud', 'w-10 h-10 text-aviation-600')}</div>
+                         <h3 class="text-xl font-semibold text-slate-800 mb-2">Upload CSV</h3>
+                         <p class="text-slate-500 mb-6 max-w-sm">Drag & drop or click to browse</p>
+                         <label class="relative z-10">
+                            <span class="bg-aviation-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-aviation-700 transition-colors shadow-md cursor-pointer">Select File</span>
+                            <input type="file" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(event)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const renderFilterPanel = () => `
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-full flex flex-col gap-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4">${getIcon('search', 'w-5 h-5 text-aviation-600')} Search & Filter</h2>
+                    <input type="text" placeholder="Search..." class="w-full px-4 py-2 rounded-lg border border-slate-300 text-sm" value="${state.filters.searchQuery}" oninput="updateFilter('searchQuery', this.value)">
+                </div>
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">${getIcon('clock')} Duration (Max ${state.filters.maxDuration} days)</h3>
+                    <input type="range" min="1" max="10" value="${state.filters.maxDuration}" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer" oninput="updateFilter('maxDuration', this.value)">
+                </div>
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">${getIcon('plane')} Aircraft</h3>
+                    <div class="flex flex-wrap gap-2">
+                        ${state.uniqueAircraft.map(ac => `
+                            <button onclick="toggleAircraft('${ac}')" class="px-3 py-1.5 rounded-md text-xs font-medium transition-all ${state.filters.aircraftTypes.includes(ac) ? 'bg-aviation-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${ac}</button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">${getIcon('calendar')} Dates</h3>
+                    <div class="flex flex-col gap-2">
+                         <div class="flex flex-col"><label class="text-xs text-slate-500 mb-1">Start</label><input type="date" class="text-sm border border-slate-300 rounded px-2 py-1" value="${state.filters.startDate}" onchange="updateFilter('startDate', this.value)"></div>
+                         <div class="flex flex-col"><label class="text-xs text-slate-500 mb-1">End</label><input type="date" class="text-sm border border-slate-300 rounded px-2 py-1" value="${state.filters.endDate}" onchange="updateFilter('endDate', this.value)"></div>
+                    </div>
+                </div>
+                <button onclick="resetFilters()" class="mt-auto w-full py-2 text-sm text-aviation-600 hover:bg-aviation-50 rounded-lg">Reset Filters</button>
+            </div>
+        `;
+
+        const renderPreferences = () => {
+            const { activeType, inputValue, startTime, endTime, dateValue, weekdayValue } = state.prefInputs;
+            
+            let inputField = '';
+            if (activeType === 'TIME_WINDOW') {
+                const hours = Array.from({length:24},(_,i)=>i).map(h=>`<option value="${h}" ${h==startTime?'selected':''}>${h}:00</option>`).join('');
+                const hoursEnd = Array.from({length:24},(_,i)=>i).map(h=>`<option value="${h}" ${h==endTime?'selected':''}>${h}:00</option>`).join('');
+                inputField = `<div class="flex gap-2"><select onchange="updatePrefInput('startTime',this.value)" class="w-full border p-2 rounded">${hours}</select><select onchange="updatePrefInput('endTime',this.value)" class="w-full border p-2 rounded">${hoursEnd}</select></div>`;
+            } else if (activeType === 'SPECIFIC_DATE_OFF') {
+                inputField = `<input type="date" class="w-full border p-2 rounded" value="${dateValue}" onchange="updatePrefInput('dateValue', this.value)">`;
+            } else if (activeType === 'DAY_OF_WEEK_OFF') {
+                inputField = `<select onchange="updatePrefInput('weekdayValue',this.value)" class="w-full border p-2 rounded" value="${weekdayValue}">
+                    <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+                </select>`;
+            } else if (!['STRATEGY_MONEY', 'AVOID_RED_EYE'].includes(activeType)) {
+                inputField = `<input type="text" class="w-full border p-2 rounded" value="${inputValue}" placeholder="Value..." oninput="updatePrefInput('inputValue', this.value)">`;
+            }
+
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4">${getIcon('star', 'w-5 h-5 text-amber-500')} Priorities</h2>
+                    <div class="flex flex-col xl:flex-row gap-4 items-start xl:items-end bg-slate-50 p-4 rounded-lg mb-4">
+                        <div class="w-full xl:w-1/3">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Type</label>
+                            <select onchange="updatePrefInput('activeType', this.value)" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm">
+                                <optgroup label="Balance">
+                                    <option value="SPECIFIC_DATE_OFF" ${activeType=='SPECIFIC_DATE_OFF'?'selected':''}>Block Date Off</option>
+                                    <option value="DAY_OF_WEEK_OFF" ${activeType=='DAY_OF_WEEK_OFF'?'selected':''}>Block Weekday Off</option>
+                                    <option value="MAX_DURATION" ${activeType=='MAX_DURATION'?'selected':''}>Limit Duration</option>
+                                    <option value="AVOID_RED_EYE" ${activeType=='AVOID_RED_EYE'?'selected':''}>No Red-Eyes</option>
+                                    <option value="MAX_LEGS_PER_DAY" ${activeType=='MAX_LEGS_PER_DAY'?'selected':''}>Limit Legs/Day</option>
+                                </optgroup>
+                                <optgroup label="Strategy">
+                                    <option value="STRATEGY_MONEY" ${activeType=='STRATEGY_MONEY'?'selected':''}>Max Earnings</option>
+                                </optgroup>
+                                <optgroup label="Routing">
+                                    <option value="ROUTE" ${activeType=='ROUTE'?'selected':''}>Prefer Route</option>
+                                    <option value="TIME_WINDOW" ${activeType=='TIME_WINDOW'?'selected':''}>Prefer Time</option>
+                                    <option value="AVOID_AIRPORT" ${activeType=='AVOID_AIRPORT'?'selected':''}>Avoid Airport</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="w-full xl:w-1/3">
+                             <label class="block text-xs font-medium text-slate-500 mb-1">Value</label>
+                             ${inputField}
+                        </div>
+                        <button onclick="addPreference()" class="bg-aviation-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-aviation-700 w-full xl:w-auto">${getIcon('plus', 'w-4 h-4 inline')} Add</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        ${state.preferences.map(pref => `
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${['AVOID_AIRPORT','AVOID_RED_EYE','SPECIFIC_DATE_OFF'].includes(pref.type) ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-800 border-blue-100'}">
+                                <span>${pref.label}</span> 
+                                <button onclick="removePreference('${pref.id}')">${getIcon('x', 'w-3 h-3')}</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderPairingCard = (p) => {
+            const scoreClass = p.score >= 50 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : p.score > 0 ? 'text-blue-600 bg-blue-50 border-blue-200' : p.score < 0 ? 'text-red-600 bg-red-50 border-red-200' : 'text-slate-500 bg-slate-100 border-slate-200';
+            const matchesHtml = p.matches.map(m => {
+                const isBad = m.includes('Violated') || m.includes('Conflicts');
+                return `<span class="text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${isBad ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}">${isBad ? getIcon('alert-circle', 'w-2.5 h-2.5') : getIcon('check-circle-2', 'w-2.5 h-2.5')} ${m}</span>`;
+            }).join('');
+
+            return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1"><span class="text-lg font-bold text-slate-900">Pairing ${p.pairingNumber}</span>${p.preAssigned ? '<span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">PRE</span>' : ''}</div>
+                            <div class="flex items-center gap-2 text-sm text-slate-500">${getIcon('plane', 'w-3 h-3')}<span>${p.aircraftType}</span></div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="px-2 py-1 rounded-lg text-sm font-bold border flex items-center gap-1 ${scoreClass}">${getIcon('star', 'w-3 h-3 fill-current')} ${p.score}</div>
+                            <div class="text-xs text-slate-400 font-medium">${p.duration} Days • ${p.blockHours} BH</div>
+                        </div>
+                    </div>
+                    ${matchesHtml ? `<div class="mb-4 flex flex-wrap gap-1.5">${matchesHtml}</div>` : ''}
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-slate-50 p-3 rounded-lg"><div class="text-xs text-slate-400 mb-1 flex items-center gap-1">${getIcon('calendar-days', 'w-3 h-3')} Dep</div><div class="font-semibold text-slate-700 text-sm">${dateFns.format(p.departureTime, 'MMM dd')}</div><div class="text-xs text-slate-500">${dateFns.format(p.departureTime, 'HH:mm')}</div></div>
+                        <div class="bg-slate-50 p-3 rounded-lg"><div class="text-xs text-slate-400 mb-1 flex items-center gap-1">${getIcon('clock', 'w-3 h-3')} Arr</div><div class="font-semibold text-slate-700 text-sm">${dateFns.format(p.arrivalTime, 'MMM dd')}</div><div class="text-xs text-slate-500">${dateFns.format(p.arrivalTime, 'HH:mm')}</div></div>
+                    </div>
+                    <div class="border-t border-slate-100 pt-3 mt-auto flex items-start gap-2">
+                        ${getIcon('map-pin', 'w-4 h-4 text-slate-400 shrink-0')}<p class="text-xs text-slate-600 font-mono break-words">${p.details.replace(/-/g, ' → ')}</p>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderMain = () => `
+            <div class="min-h-screen bg-slate-50 flex flex-col">
+                <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 h-16 flex items-center justify-between">
+                    <div class="flex items-center gap-3"><span class="font-bold text-slate-800 text-lg">PilotBid Pro</span><span class="text-slate-500 text-sm">${state.pairings.length} Pairings</span></div>
+                    <button onclick="resetApp()" class="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50">${getIcon('log-out', 'w-4 h-4')} Reset</button>
+                </header>
+                <main class="max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-1 lg:sticky lg:top-24 h-fit">${renderFilterPanel()}</div>
+                    <div class="lg:col-span-3 flex flex-col gap-6">
+                        <div class="bg-white p-1 rounded-xl border border-slate-200 inline-flex self-start shadow-sm">
+                            <button onclick="setViewMode('LIST')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.viewMode === 'LIST' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}">${getIcon('list', 'w-4 h-4')} Pairings</button>
+                            <button onclick="setViewMode('STATS')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.viewMode === 'STATS' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}">${getIcon('bar-chart-2', 'w-4 h-4')} Stats</button>
+                            <button onclick="setViewMode('AI')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.viewMode === 'AI' ? 'bg-aviation-50 text-aviation-700' : 'text-slate-500'}">${getIcon('bot', 'w-4 h-4')} AI</button>
+                        </div>
+                        <div id="content-area"></div>
+                    </div>
+                </main>
+            </div>
+        `;
+
+        // --- RENDER LOGIC ---
+
+        const renderApp = () => {
+            const app = document.getElementById('app');
+            if (state.pairings.length === 0) {
+                app.innerHTML = renderLanding();
+            } else {
+                app.innerHTML = renderMain();
+                renderContentArea();
+            }
+            lucide.createIcons();
+        };
+
+        const renderContentArea = () => {
+            const container = document.getElementById('content-area');
+            if (!container) return;
+
+            if (state.viewMode === 'LIST') {
+                const listHtml = state.scoredPairings.slice(0, 100).map(renderPairingCard).join('');
+                container.innerHTML = renderPreferences() + `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${listHtml || '<div class="col-span-2 text-center text-slate-400 p-8 border border-dashed rounded-xl">No pairings found.</div>'}</div>`;
+            } else if (state.viewMode === 'STATS') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="mb-4 font-bold">Duration</h3><div class="h-64"><canvas id="chart-dur"></canvas></div></div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="mb-4 font-bold">Aircraft</h3><div class="h-64"><canvas id="chart-ac"></canvas></div></div>
+                    </div>
+                `;
+                initCharts();
+            } else if (state.viewMode === 'AI') {
+                container.innerHTML = `
+                    <div class="bg-white rounded-xl border border-slate-200 h-[600px] flex flex-col">
+                        <div class="flex-1 p-6 overflow-y-auto">${state.aiResponse || '<div class="text-center text-slate-400 mt-20">Ask a question about your schedule.</div>'}</div>
+                        <div class="p-4 border-t flex gap-2">
+                            <input id="ai-input" class="flex-1 border p-2 rounded" placeholder="Ask..." value="${state.aiQuery}" oninput="state.aiQuery=this.value">
+                            <button onclick="analyzeSchedule()" class="bg-aviation-600 text-white px-4 rounded" ${state.aiLoading ? 'disabled' : ''}>${state.aiLoading ? '...' : 'Ask'}</button>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        };
+
+        // --- INTERACTIVITY FUNCTIONS ---
+
+        window.handleFileSelect = (e) => handleFileUpload(e.target.files[0]);
+        window.resetApp = () => { state.pairings = []; renderApp(); };
+        window.setViewMode = (mode) => { state.viewMode = mode; renderApp(); };
+        window.updateFilter = (key, val) => { state.filters[key] = val; applyFilters(); };
+        window.toggleAircraft = (ac) => {
+            const idx = state.filters.aircraftTypes.indexOf(ac);
+            if (idx > -1) state.filters.aircraftTypes.splice(idx, 1);
+            else state.filters.aircraftTypes.push(ac);
+            applyFilters();
+        };
+        window.resetFilters = () => { 
+            state.filters = { minDuration: 1, maxDuration: 10, aircraftTypes: state.uniqueAircraft, searchQuery: '', startDate: '', endDate: '' }; 
+            applyFilters(); 
+        };
+        window.updatePrefInput = (key, val) => { state.prefInputs[key] = val; renderApp(); };
+        window.removePreference = (id) => { state.preferences = state.preferences.filter(p => p.id !== id); applyFilters(); };
+        window.addPreference = () => {
+            const { activeType, inputValue, startTime, endTime, dateValue, weekdayValue } = state.prefInputs;
+            let val = inputValue;
+            let lbl = '';
+            
+            // Validation
+            if (activeType === 'ROUTE' && !val) return;
+            if (activeType === 'SPECIFIC_DATE_OFF' && !dateValue) return;
+
+            switch(activeType) {
+                case 'STRATEGY_MONEY': val='true'; lbl='Max Earnings'; break;
+                case 'AVOID_RED_EYE': val='true'; lbl='No Red-Eyes'; break;
+                case 'SPECIFIC_DATE_OFF': val=dateValue; lbl=`OFF: ${dateValue}`; break;
+                case 'DAY_OF_WEEK_OFF': val=weekdayValue; lbl=`OFF: ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][parseInt(val)]}`; break;
+                case 'MAX_LEGS_PER_DAY': lbl=`Max Legs: ${val}`; break;
+                case 'ROUTE': lbl=`Route: ${val.toUpperCase()}`; break;
+                case 'AVOID_AIRPORT': lbl=`Avoid: ${val.toUpperCase()}`; break;
+                case 'MAX_DURATION': lbl=`Max Days: ${val}`; break;
+                case 'TIME_WINDOW': val=`${startTime}-${endTime}`; lbl=`Time: ${val}`; break;
+            }
+            state.preferences.push({ id: Date.now().toString(), type: activeType, value: val, label: lbl });
+            state.prefInputs.inputValue = ''; // Reset input
+            applyFilters();
+        };
+        window.analyzeSchedule = analyzeSchedule;
+
+        // --- CHART JS ---
+        const initCharts = () => {
+            // Data Prep
+            const durCounts = {}; state.filteredPairings.forEach(p => durCounts[p.duration] = (durCounts[p.duration]||0)+1);
+            const acCounts = {}; state.filteredPairings.forEach(p => acCounts[p.aircraftType] = (acCounts[p.aircraftType]||0)+1);
+
+            new Chart(document.getElementById('chart-dur'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(durCounts).map(k => `${k} Days`),
+                    datasets: [{ label: 'Count', data: Object.values(durCounts), backgroundColor: '#0ea5e9' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            new Chart(document.getElementById('chart-ac'), {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: Object.keys(acCounts),
+                    datasets: [{ label: 'Count', data: Object.values(acCounts), backgroundColor: '#0284c7' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        };
+
+        // Init
+        renderApp();
+
+        // Drag and Drop (Global Listener to prevent default)
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.target.closest('#drop-zone') && e.dataTransfer.files[0]) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+    </script>
+</body>
+</html>
